@@ -1,22 +1,31 @@
 ;(async function () {
-  try {
-    const shop = window.Shopify && Shopify.shop ? Shopify.shop : ''
-    if (!shop) return
-
-    const res = await fetch('https://ihi.enkomion.com/call/public?shop=' + encodeURIComponent(shop), {
-      mode: 'cors',
-      cache: 'force-cache'
+  const hotjarID = await fetch(
+    'https://ihi.enkomion.com/call/public?shop=' + Shopify.shop,
+    { mode: 'cors' }
+  )
+    .then(res => res.text())
+    .then(code => {
+      return code.match(/\d{5,10}/)[0]
     })
-    if (!res.ok) return
 
-    const text = await res.text()
-    const match = text.match(/\b\d{5,10}\b/)
-    if (!match) return
-    const hotjarID = match[0]
+  //console.log('hotjarID:', hotjarID)
 
-    const s = document.createElement('script')
-    s.defer = true
-    s.src = 'https://static.hotjar.com/c/hotjar-' + hotjarID + '.js?sv=6'
-    document.head.appendChild(s)
-  } catch (e) {}
+  const hotjarSnippet = `
+  (function(h,o,t,j,a,r){
+    h.hj=h.hj||function(){(h.hj.q=h.hj.q||[]).push(arguments)};
+    h._hjSettings={hjid:${hotjarID},hjsv:6};
+    a=o.getElementsByTagName('head')[0];
+    r=o.createElement('script');r.async=1;
+    r.src=t+h._hjSettings.hjid+j+h._hjSettings.hjsv;
+    a.appendChild(r);
+  })(window,document,'https://static.hotjar.com/c/hotjar-','.js?sv=');
+  `
+
+  const hotjarScript = document.createElement('script')
+  hotjarScript.type = 'text/javascript'
+  hotjarScript.text = hotjarSnippet
+
+  //console.log(hotjarScript)
+
+  document.getElementsByTagName('head')[0].appendChild(hotjarScript)
 })()
