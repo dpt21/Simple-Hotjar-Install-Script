@@ -3,8 +3,12 @@
     'https://ihi.enkomion.com/call/public?shop=' + Shopify.shop,
     { mode: 'cors' }
   )
-    .then(res => res.text())
+    .then(res => {
+      console.log('res:', res)
+      return res.text()
+    })
     .then(code => {
+      console.log('code:', code)
       return code.match(/\d{5,10}/)[0]
     })
 
